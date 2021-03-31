@@ -35,10 +35,10 @@ end
 class Game
   include UI
 
-  def initialize
-    @word = choose_random_word(DICTIONARY).split('')
-    @progress_bar = Array.new(@word.size, nil)
-    @lives = 10
+  def initialize(word = choose_random_word(DICTIONARY).split(''), progress_bar = Array.new(word.size, nil), lives = 10)
+    @word = word
+    @progress_bar = progress_bar
+    @lives = lives
     @solved = false
   end
 
