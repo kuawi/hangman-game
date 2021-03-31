@@ -22,9 +22,7 @@ module UI
 
   def say_result(solved, word)
     puts "You #{solved ? 'win' : 'lose'}!"
-    unless solved
-      puts "The answer was: #{word.join}"
-    end
+    puts "The answer was: #{word.join}" unless solved
   end
 
   def show_progress_bar(bar)
