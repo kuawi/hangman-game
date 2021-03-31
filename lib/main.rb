@@ -8,7 +8,6 @@ module UI
   def main_menu(word)
     puts 'Welcome'
     puts word.join
-    puts '********'.center(SCREEN_SIZE)
   end
 
   def main_screen(bar, lives)
@@ -17,8 +16,20 @@ module UI
     show_progress_bar(bar)
   end
 
+  def collect_input
+    gets.downcase.strip
+  end
+
+  def say_result(solved, word)
+    puts "You #{solved ? 'win' : 'lose'}!"
+    unless solved
+      puts "The answer was: #{word.join}"
+    end
+  end
+
   def show_progress_bar(bar)
-    puts bar.join
+    bar.each { |e| e.nil? ? print('*') : print(e) }
+    puts ''
   end
 end
 
@@ -27,17 +38,41 @@ class Game
   include UI
 
   def initialize
-    @secret_word_arr = choose_random_word(DICTIONARY).split('')
-    @progress_arr = Array.new(@secret_word_arr.size, '-')
+    @word = choose_random_word(DICTIONARY).split('')
+    @progress_bar = Array.new(@word.size, nil)
     @lives = 10
+    @solved = false
   end
 
   def play
-    main_menu(@secret_word_arr)
-    main_screen(@progress_arr, @lives)
+    main_menu(@word)
+    until @solved || @lives < 1
+      main_screen(@progress_bar, @lives)
+      guess = collect_input
+      update(guess)
+      @solved = solved?
+    end
+    say_result(@solved, @word)
   end
 
   private
+
+  def update(guess)
+    @lives -= 1 if @progress_bar.include?(guess)
+    if @word.include?(guess)
+      @progress_bar = @progress_bar.each_with_index.map do |spot, i|
+        @word[i] == guess ? guess : spot
+      end
+    else
+      @lives -= 1
+    end
+  end
+
+  def solved?
+    return true if @word == @progress_bar
+
+    false
+  end
 
   def choose_random_word(dictionary)
     dictionary = File.open(dictionary)
