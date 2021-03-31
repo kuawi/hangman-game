@@ -5,9 +5,14 @@ DICTIONARY = '../src/dictionary.txt'
 # any mathod that includes puts gets or print will be considered a UI method and belongs to this module
 module UI
   SCREEN_SIZE = 30
-  def main_menu(word)
+  def self.main_menu
     puts 'Welcome'
-    puts word.join
+    ask_type_of_game
+  end
+
+  def self.ask_type_of_game
+    puts "Type 'new' to start a new game"
+    gets.downcase.strip
   end
 
   def main_screen(bar, lives)
@@ -43,7 +48,6 @@ class Game
   end
 
   def play
-    main_menu(@word)
     until @solved || @lives < 1
       main_screen(@progress_bar, @lives)
       guess = collect_input
@@ -82,5 +86,7 @@ class Game
   end
 end
 
-hangman = Game.new
-hangman.play
+if UI.main_menu == 'new'
+  hangman = Game.new
+  hangman.play
+end
