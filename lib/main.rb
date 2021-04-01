@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+require 'yaml'
+
 DICTIONARY = '../src/dictionary.txt'
+MEMORY_SLOT_1 = '../save/save_slot_1.txt'
 
 # any mathod that includes puts gets or print will be considered a UI method and belongs to this module
 module UI
@@ -25,6 +28,12 @@ module UI
     gets.downcase.strip
   end
 
+  def save_request?(request)
+    return true if request == 'save'
+
+    false
+  end
+
   def say_result(solved, word)
     puts "You #{solved ? 'win' : 'lose'}!"
     puts "The answer was: #{word.join}" unless solved
@@ -34,11 +43,38 @@ module UI
     bar.each { |e| e.nil? ? print('*') : print(e) }
     puts ''
   end
+
+  def save_completed_msg
+    puts 'Game saved'
+    puts 'Returning to main menu'
+  end
+end
+
+# serialization and writing to file
+module SaveGame
+  include UI
+
+  def save(word, progress_bar, lives)
+    slot = File.open(MEMORY_SLOT_1, 'w')
+    slot.puts serialize(word, progress_bar, lives)
+    save_completed_msg
+  end
+
+  private
+
+  def serialize(word, progress_bar, lives)
+    YAML.dump({
+                word: word,
+                progress_bar: progress_bar,
+                lives: lives
+              })
+  end
 end
 
 # game logic
 class Game
   include UI
+  include SaveGame
 
   def initialize(word = choose_random_word(DICTIONARY).split(''), progress_bar = Array.new(word.size, nil), lives = 10)
     @word = word
@@ -51,10 +87,14 @@ class Game
     until @solved || @lives < 1
       main_screen(@progress_bar, @lives)
       guess = collect_input
+      if save_request?(guess)
+        save(@word, @progress_bar, @lives)
+        break
+      end
       update(guess)
       @solved = solved?
     end
-    say_result(@solved, @word)
+    say_result(@solved, @word) unless save_request?(guess)
   end
 
   private
