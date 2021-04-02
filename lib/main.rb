@@ -14,7 +14,9 @@ module UI
   end
 
   def self.ask_type_of_game
-    puts "Type 'new' to start a new game"
+    puts "Type 'load' to play a saved game"
+    puts 'or'
+    puts 'Type any key to start a new game'
     gets.downcase.strip
   end
 
@@ -71,10 +73,33 @@ module SaveGame
   end
 end
 
+# read YAML from file and recreate saved game
+module LoadGame
+  def load
+    puts 'loading'
+    info = read_saved_game
+    word = info[:word]
+    progress_bar = info[:progress_bar]
+    lives = info[:lives]
+    new(word, progress_bar, lives)
+  end
+
+  private
+
+  def read_saved_game
+    puts 'loading...'
+    saved_game = File.open(MEMORY_SLOT_1)
+    game_info = YAML.safe_load saved_game, [Symbol]
+    saved_game.close
+    game_info
+  end
+end
+
 # game logic
 class Game
   include UI
   include SaveGame
+  extend LoadGame
 
   def initialize(word = choose_random_word(DICTIONARY).split(''), progress_bar = Array.new(word.size, nil), lives = 10)
     @word = word
@@ -126,7 +151,9 @@ class Game
   end
 end
 
-if UI.main_menu == 'new'
-  hangman = Game.new
-  hangman.play
-end
+hangman = if UI.main_menu == 'load'
+            Game.load
+          else
+            Game.new
+          end
+hangman.play
